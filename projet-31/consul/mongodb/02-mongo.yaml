@@ -1,0 +1,108 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: mongo
+  namespace: projet
+
+---
+
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRoleBinding
+metadata:
+  name: mongo
+subjects:
+  - kind: ServiceAccount
+    name: mongo
+    namespace: projet
+roleRef:
+  kind: ClusterRole
+  name: cluster-admin
+  apiGroup: rbac.authorization.k8s.io
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+ name: mongo
+ namespace: projet
+ labels:
+   name: mongo
+spec:
+ ports:
+ - port: 27017
+   name: mongo
+   targetPort: 27017
+ clusterIP: None
+ selector:
+   role: mongo
+
+---
+
+apiVersion: apps/v1beta1
+kind: StatefulSet
+metadata:
+  name: mongo
+  namespace: projet
+spec:
+  serviceName: mongo
+  replicas: 3
+  template:
+    metadata:
+      labels:
+        role: mongo
+        environment: staging
+        replicaset: MainRepSet
+      annotations:
+        "consul.hashicorp.com/connect-inject": "true"
+    spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: replicaset
+                  operator: In
+                  values:
+                  - MainRepSet
+              topologyKey: kubernetes.io/hostname
+      terminationGracePeriodSeconds: 10
+      serviceAccountName: mongo
+      containers:
+        - name: mongo
+          image: mongo
+          command: ["/bin/sh", "-c"]
+          args: ["mongod --wiredTigerCacheSizeGB 0.25 --bind_ip 0.0.0.0 --replSet MainRepSet --smallfiles --noprealloc"]
+          ports:
+            - containerPort: 27017
+          volumeMounts:
+            - name: mongo-persistent-storage
+              mountPath: /data/db
+            - name: mongo
+              mountPath: /data/db/config
+        - name: mongo-sidecar
+          image: cvallance/mongo-k8s-sidecar
+          env:
+            - name: MONGO_SIDECAR_POD_LABELS
+              value: "role=mongo,environment=staging"
+            - name: KUBE_NAMESPACE
+              value: "projet"
+            - name: KUBERNETES_MONGO_SERVICE_NAME
+              value: "mongo"
+      volumes:
+      - name: mongo
+        configMap:
+          name: mongo
+  volumeClaimTemplates:
+  - metadata:
+      name: mongo-persistent-storage
+      annotations:
+        volume.beta.kubernetes.io/storage-class: "default"
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 2Gi
+

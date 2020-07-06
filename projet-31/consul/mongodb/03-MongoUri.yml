@@ -1,0 +1,10 @@
+---
+
+apiVersion: v1
+kind: Secret
+metadata:
+  name: mongouri
+  namespace: projet
+type: Opaque
+data:
+  mongoUri: "bW9uZ29kYjovL2ZyaWhhOmFiZGVsaGFrMUAxMjcuMC4wLjE6MjcwMTcvcHJvamV0P3JlcGxpY2FTZXQ9TWFpblJlcFNldA=="

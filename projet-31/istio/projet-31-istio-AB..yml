@@ -1,0 +1,65 @@
+# projet-app-virtualservice.yaml
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: projet-31
+  namespace: projet
+spec:
+  hosts:
+  - "*"
+  gateways:
+  - "projet-31-gateway"
+  http:
+  - match:
+    - uri:
+        prefix: /
+      headers:
+        user-agent:
+          regex: ".*Firefox.*"
+    route:
+    - destination:
+        host: projet-31
+        subset: v2-0
+        port:
+          number: 5000
+  - route:
+    - destination:
+        host: projet-31
+        subset: v1-0
+        port:
+          number: 5000
+---
+# projet-app-gateway.yaml
+apiVersion: networking.istio.io/v1alpha3
+kind: Gateway
+metadata:
+  name: projet-31-gateway
+  namespace: projet
+spec:
+  selector:
+    istio: ingressgateway
+  servers:
+  - port:
+      number: 80
+      name: http
+      protocol: HTTP
+    hosts:
+    - "*"
+
+---
+# projet-31-app-destinationrule-1.0.yaml
+apiVersion: networking.istio.io/v1alpha3
+kind: DestinationRule
+metadata:
+  name: projet-31
+  namespace: projet
+spec:
+  host: projet-31
+  subsets:
+  - name: v1-0
+    labels:
+      version: "1.0"
+  - name: v2-0
+    labels:
+      version: "2.0"
+---
