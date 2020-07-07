@@ -24,7 +24,7 @@ variable "Tenant_ID" {
 }
 
 variable "agent_count" {
-  default = 3
+  default = 2
 }
 
 variable "ssh_key" {
