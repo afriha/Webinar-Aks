@@ -1,18 +1,16 @@
----
-
 kind: Service
 apiVersion: v1
 metadata:
-  name: nginx-projet31
+  name: projet-31
   namespace: projet
   annotations:
     service.beta.kubernetes.io/azure-load-balancer-resource-group: ${RG}
 spec:
   selector:
-    app: nginx
+    app: "projet-31"
   ports:
     - protocol: "TCP"
-      port: 443
-      targetPort: 443
+      port: 5000
+      targetPort: 5000
   type: LoadBalancer
   loadBalancerIP: ${LoadBalancerIP}

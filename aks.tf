@@ -89,13 +89,22 @@ resource "azurerm_kubernetes_cluster" "webinar" {
 resource "null_resource" "aks_kube_config" {
   provisioner "local-exec" {
     command = "az aks get-credentials --name ${azurerm_kubernetes_cluster.webinar.name} --resource-group ${azurerm_resource_group.Webinar.name}"
+  }
 }
-# resource "null_resource" "aks_dashboard_role" {
-#   provisioner "local-exec" {
-#     command = "kubectl create clusterrolebinding kubernetes-dashboard -n kube-system --clusterrole=cluster-admin --serviceaccount=kube-system:kubernetes-dashboard"
-# }
-  
 
+resource "null_resource" "aks_dashboard_role" {
+  depends_on = [azurerm_kubernetes_cluster.webinar,null_resource.aks_kube_config]
+  provisioner "local-exec" {
+    command = "kubectl create clusterrolebinding kubernetes-dashboard -n kube-system --clusterrole=cluster-admin --serviceaccount=kube-system:kubernetes-dashboard"
+  }
+}
+
+resource "null_resource" "addons" {
+  depends_on = [azurerm_kubernetes_cluster.webinar,null_resource.aks_kube_config]
+  provisioner "local-exec" {
+    command = "addons/addons.sh"
+  }
+}
 #Projet 31 Public IP
 # resource "azurerm_public_ip" "PublicIP-Projet31" {
 #   name                = "PublicIP-Projet31"
@@ -106,7 +115,7 @@ resource "null_resource" "aks_kube_config" {
 # }
 
 # data "template_file" "projetloadbalancer" {
-#   template = file("${path.module}/projet-31/consul/projet31service.tpl")
+#   template = file("${path.module}/projet-31/projet31service.tpl")
 #   vars = {
 #     RG             = azurerm_resource_group.Webinar.name
 #     LoadBalancerIP = azurerm_public_ip.PublicIP-Projet31.ip_address
@@ -115,7 +124,6 @@ resource "null_resource" "aks_kube_config" {
 
 # resource "local_file" "projetloadbalancer_config" {
 #   content  = data.template_file.projetloadbalancer.rendered
-#   filename = "${path.module}/projet-31/consul/04-projet-31-loadbalancer.yml"
+#   filename = "${path.module}/projet-31/deployment/04-projet-31-loadbalancer.yml"
 # }
-}
 
