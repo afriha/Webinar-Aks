@@ -1,0 +1,16 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: projet-31
+  namespace: projet
+  annotations:
+    service.beta.kubernetes.io/azure-load-balancer-resource-group: webinar
+spec:
+  selector:
+    app: "projet-31"
+  ports:
+    - protocol: "TCP"
+      port: 80
+      targetPort: 5000
+  type: LoadBalancer
+  loadBalancerIP: 20.50.53.86

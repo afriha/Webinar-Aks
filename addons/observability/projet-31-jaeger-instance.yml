@@ -3,4 +3,6 @@ kind: Jaeger
 metadata:
   name: simplest
   namespace: projet
-
+spec:
+  ingress:
+    enabled: false

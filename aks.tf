@@ -92,38 +92,33 @@ resource "null_resource" "aks_kube_config" {
   }
 }
 
-resource "null_resource" "aks_dashboard_role" {
-  depends_on = [azurerm_kubernetes_cluster.webinar,null_resource.aks_kube_config]
-  provisioner "local-exec" {
-    command = "kubectl create clusterrolebinding kubernetes-dashboard -n kube-system --clusterrole=cluster-admin --serviceaccount=kube-system:kubernetes-dashboard"
-  }
-}
-
-resource "null_resource" "addons" {
+resource "null_resource" "addons_install" {
   depends_on = [azurerm_kubernetes_cluster.webinar,null_resource.aks_kube_config]
   provisioner "local-exec" {
     command = "addons/addons.sh"
   }
 }
 #Projet 31 Public IP
-# resource "azurerm_public_ip" "PublicIP-Projet31" {
-#   name                = "PublicIP-Projet31"
-#   location            = azurerm_resource_group.Webinar.location
-#   resource_group_name = azurerm_resource_group.Webinar.name
-#   allocation_method   = "Static"
-#   domain_name_label   = "projet31"
-# }
+resource "azurerm_public_ip" "PublicIP-Projet31" {
+  name                = "PublicIP-Projet31"
+  location            = azurerm_resource_group.Webinar.location
+  resource_group_name = azurerm_resource_group.Webinar.name
+  allocation_method   = "Static"
+  domain_name_label   = "projet31"
+  sku                 = "Standard"
 
-# data "template_file" "projetloadbalancer" {
-#   template = file("${path.module}/projet-31/projet31service.tpl")
-#   vars = {
-#     RG             = azurerm_resource_group.Webinar.name
-#     LoadBalancerIP = azurerm_public_ip.PublicIP-Projet31.ip_address
-#   }
-# }
+}
 
-# resource "local_file" "projetloadbalancer_config" {
-#   content  = data.template_file.projetloadbalancer.rendered
-#   filename = "${path.module}/projet-31/deployment/04-projet-31-loadbalancer.yml"
-# }
+data "template_file" "projetloadbalancer" {
+  template = file("${path.module}/projet-31/projet31service.tpl")
+  vars = {
+    RG             = azurerm_resource_group.Webinar.name
+    LoadBalancerIP = azurerm_public_ip.PublicIP-Projet31.ip_address
+  }
+}
+
+resource "local_file" "projetloadbalancer_config" {
+  content  = data.template_file.projetloadbalancer.rendered
+  filename = "${path.module}/projet-31/deployment/05-projet-31-loadbalancer.yml"
+}
 
