@@ -10,7 +10,7 @@ spec:
     app: "projet-31"
   ports:
     - protocol: "TCP"
-      port: 80
+      port: 5000
       targetPort: 5000
   type: LoadBalancer
-  loadBalancerIP: 20.50.53.86
+  loadBalancerIP: 20.54.234.203
