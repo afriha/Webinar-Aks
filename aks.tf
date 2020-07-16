@@ -90,12 +90,27 @@ resource "null_resource" "aks_kube_config" {
   provisioner "local-exec" {
     command = "az aks get-credentials --name ${azurerm_kubernetes_cluster.webinar.name} --resource-group ${azurerm_resource_group.Webinar.name}"
   }
+  provisioner "local-exec" {
+    when    = destroy
+    command = "rm ~/.kube/config"
+  }
 }
-
-resource "null_resource" "addons_install" {
+resource "null_resource" "gitlabrun_install" {
   depends_on = [azurerm_kubernetes_cluster.webinar,null_resource.aks_kube_config]
   provisioner "local-exec" {
-    command = "addons/addons.sh"
+    command = "addons/gitlab-runner/runner.sh"
+  }
+}
+resource "null_resource" "jaeger_install" {
+  depends_on = [azurerm_kubernetes_cluster.webinar,null_resource.aks_kube_config]
+  provisioner "local-exec" {
+    command = "addons/observability/jaeger.sh"
+  }
+}
+resource "null_resource" "promehteus_install" {
+  depends_on = [azurerm_kubernetes_cluster.webinar,null_resource.aks_kube_config,null_resource.gitlabrun_install,null_resource.jaeger_install]
+  provisioner "local-exec" {
+    command = "addons/monitoring/prom.sh"
   }
 }
 #Projet 31 Public IP

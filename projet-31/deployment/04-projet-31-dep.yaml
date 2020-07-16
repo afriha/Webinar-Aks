@@ -21,7 +21,7 @@ spec:
     spec:
       containers:
       - name: projet-31
-        image: abdelhakverwest/webinar:0.5
+        image: abdelhakverwest/webinar:0.6
         env:
         - name: MONGO_URI
           valueFrom:

@@ -1,8 +1,5 @@
 #!/bin/bash -v
-kubectl create namespace monitoring
 kubectl create namespace observability
-kubectl create namespace projet
-#helm install prometheus-operator stable/prometheus-operator --namespace monitoring
 kubectl create -f https://raw.githubusercontent.com/jaegertracing/jaeger-operator/master/deploy/crds/jaegertracing.io_jaegers_crd.yaml
 kubectl create -n observability -f https://raw.githubusercontent.com/jaegertracing/jaeger-operator/master/deploy/service_account.yaml
 kubectl create -n observability -f https://raw.githubusercontent.com/jaegertracing/jaeger-operator/master/deploy/role.yaml
