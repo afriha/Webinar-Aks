@@ -91,6 +91,12 @@ resource "null_resource" "aks_kube_config" {
     command = "az aks get-credentials --name ${azurerm_kubernetes_cluster.webinar.name} --resource-group ${azurerm_resource_group.Webinar.name}"
   }
   provisioner "local-exec" {
+    command = "kubectl delete clusterrolebinding kubernetes-dashboard"
+  }
+  provisioner "local-exec" {
+    command = "kubectl create clusterrolebinding kubernetes-dashboard --clusterrole=cluster-admin --serviceaccount=kube-system:kubernetes-dashboard --user=clusterUser"
+  }
+  provisioner "local-exec" {
     when    = destroy
     command = "rm ~/.kube/config"
   }
@@ -112,28 +118,5 @@ resource "null_resource" "promehteus_install" {
   provisioner "local-exec" {
     command = "addons/monitoring/prom.sh"
   }
-}
-#Projet 31 Public IP
-resource "azurerm_public_ip" "PublicIP-Projet31" {
-  name                = "PublicIP-Projet31"
-  location            = azurerm_resource_group.Webinar.location
-  resource_group_name = azurerm_resource_group.Webinar.name
-  allocation_method   = "Static"
-  domain_name_label   = "projet31"
-  sku                 = "Standard"
-
-}
-
-data "template_file" "projetloadbalancer" {
-  template = file("${path.module}/projet-31/projet31service.tpl")
-  vars = {
-    RG             = azurerm_resource_group.Webinar.name
-    LoadBalancerIP = azurerm_public_ip.PublicIP-Projet31.ip_address
-  }
-}
-
-resource "local_file" "projetloadbalancer_config" {
-  content  = data.template_file.projetloadbalancer.rendered
-  filename = "${path.module}/projet-31/deployment/05-projet-31-loadbalancer.yml"
 }
 
